@@ -101,4 +101,24 @@ else
     echo -ne "   ${GRE}Ok:${NC} Non sensitive data can be sent"
 fi
 echo "(4/4)."
+
+echo
+echo "Downloading Viruses (2):"
+wget ${wget_options} http://www.esthetique-realm.net/ > /dev/null
+if [ $? -ne 0 ]; then
+    echo -ne "${GRE}Ok:${NC} JS/Iframe.BYO!tr cannot be downloaded"
+else
+    echo -ne "${RED}Error:${ENDCOLOR} JS/Iframe.BYO!tr can be downloaded"
+fi
+echo "(1/2)."
+wget ${wget_options} http://www.newalliancebank.com/ > /dev/null
+if [ $? -ne 0 ]; then
+    echo -ne "${GRE}Ok:${NC} HTML/Refresh.250C!tr cannot be downloaded"
+else
+    echo -ne "${RED}Error:${ENDCOLOR} HTML/Refresh.250C!tr can be downloaded"
+fi
+echo "(2/2)."
+
+
+
 # wget --no-check-certificate https://secure.eicar.org/eicar.com
