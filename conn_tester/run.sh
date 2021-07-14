@@ -154,4 +154,24 @@ do
 done
 
 
+#=============================
+# AppControl
+#=============================
+sites=(www.logmeinrescue.com)
+echo
+echo "Checking AppControl (${#sites[@]}):"
+i=0
+for site in ${sites[@]}
+do
+    i=$(($i+1))
+    wget ${wget_options} ${site} > /dev/null
+    if [ $? -ne 0 ]; then
+        echo -ne "${GRE}Ok:${NC} ${site} cannot be accessed"
+    else
+        echo -ne "${RED}Error:${NC} ${site} can be accessed"
+    fi
+    echo "(${i}/${#sites[@]})."
+done
+
+
 # wget --no-check-certificate https://secure.eicar.org/eicar.com
