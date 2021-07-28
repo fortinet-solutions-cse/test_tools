@@ -1,9 +1,11 @@
 #!/bin/bash
 
-RED="\e[31m"
-GRE="\e[32m"
-YEL="\e[33m"
-NC="\e[0m"
+if [ "$1" != "--nocolor" ]; then
+    RED="\e[31m"
+    GRE="\e[32m"
+    YEL="\e[33m"
+    NC="\e[0m"
+fi
 
 wget_options='-qO- -T 30 -t 1'
 curl_options='-s -o /dev/null'
