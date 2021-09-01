@@ -51,30 +51,36 @@ echo "Disabling certificate check in subsequent requests"
 rm eicar_signature
 echo
 echo "Downloading EICAR (3):"
-wget ${wget_options} --output-file eicar_signature http://www.rexswain.com/eicar.com > /dev/null
-if [ $? -ne 0 ]; then
-    echo -ne "${GRE}Ok:${NC} EICAR cannot be downloaded"
+if wget ${wget_options} --output-file eicar_signature http://www.rexswain.com/eicar.com > /dev/null; then
+    echo -ne "${GRE}Ok:${NC} EICAR cannot be downloaded: Connection is blocked"
 else
-    if [ grep "7CC)7}$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!" eicar_signature ]; then 
-        echo -ne "${GRE}Ok:${NC} EICAR cannot be downloaded"
+    if grep "7CC)7}$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!" eicar_signature >/dev/null; then 
+        echo -ne "${GRE}Ok:${NC} EICAR cannot be downloaded: Signature is not found on content returned"
     else
         echo -ne "${RED}Error:${NC} EICAR can be downloaded"
     fi
 fi
-
 echo "(1/3)."
-wget ${wget_options} --output-file eicar_signature http://www.rexswain.com/eicar.zip > /dev/null
-if [ $? -ne 0 ]; then
-    echo -ne "${GRE}Ok:${NC} EICAR cannot be downloaded"
+
+if wget ${wget_options} --output-file eicar_signature http://www.rexswain.com/eicar.zip > /dev/null; then
+    echo -ne "${GRE}Ok:${NC} EICAR cannot be downloaded: Connection is blocked"
 else
-    echo -ne "${RED}Error:${NC} EICAR can be downloaded"
+    if unzip eicar_signature; then
+        echo -ne "${GRE}Ok:${NC} EICAR cannot be downloaded: Returned file does not seem to be a zip"
+    else
+        echo -ne "${RED}Error:${NC} EICAR can be downloaded"
+    fi
 fi
 echo "(2/3)."
-wget ${wget_options} --output-file eicar_signature http://www.rexswain.com/eicar2.zip > /dev/null
-if [ $? -ne 0 ]; then
-    echo -ne "${GRE}Ok:${NC} EICAR cannot be downloaded"
+
+if wget ${wget_options} --output-file eicar_signature http://www.rexswain.com/eicar2.zip > /dev/null; then
+    echo -ne "${GRE}Ok:${NC} EICAR cannot be downloaded: Connection is blocked"
 else
-    echo -ne "${RED}Error:${NC} EICAR can be downloaded"
+    if unzip eicar_signature; then
+        echo -ne "${GRE}Ok:${NC} EICAR cannot be downloaded: Returned file does not seem to be a zi"
+    else
+        echo -ne "${RED}Error:${NC} EICAR can be downloaded"
+    fi
 fi
 echo "(3/3)."
 
@@ -105,8 +111,7 @@ echo "(2/2)."
 echo
 echo "Checking DLP(4)"
 echo "  Credit Card (Amex):"
-curl ${curl_options} -X POST  -H "Content-Type:multipart/form-data; boundary=---------------------------52410911313245418552292478843" -F 'item_meta[6]=371193356045439' http://dlptest.com/http-post
-if [ $? -ne 0 ]; then
+if curl ${curl_options} -X POST  -H "Content-Type:multipart/form-data; boundary=---------------------------52410911313245418552292478843" -F 'item_meta[6]=371193356045439' http://dlptest.com/http-post; then
     echo -ne "   ${GRE}Ok:${NC} Cannot leak data"
 else
     echo -ne "   ${RED}Error:${NC} Data seems to be leaked"
