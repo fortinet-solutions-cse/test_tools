@@ -22,31 +22,55 @@ wget ${wget_options} https://www.google.com > /dev/null
 
 if [ $? -ne 0 ]; then
     echo -ne "${RED}Error:${NC} Cannot get any traffic. Accessing Google.com failed"
+    ssl_inspection_hint1=true
 else
     echo -ne "${GRE}Ok:${NC} Google.com can be accessed. Internet connectivity seems to be ok"
 fi
-echo "(1/1)."
+echo "(1/2)."
+
+wget ${wget_options} https://www.google.com --no-check-certificate> /dev/null
+
+if [ $? -ne 0 ]; then
+    echo -ne "${RED}Error:${NC} Cannot get any traffic (certificate check disabled). Accessing Google.com failed"
+else
+    ssl_inspection_hint2=true
+    echo -ne "${GRE}Ok:${NC} Google.com can be accessed (certificate check disabled). Internet connectivity seems to be ok"
+fi
+echo "(2/2)."
+
+if [ $ssl_inspection_hint1 ] && [ $ssl_inspection_hint2 ]; then 
+   echo "***** Note: SSL Deep inspection might be enabled *****"
+fi
 
 #=============================
 # EICAR (AV/IPS)
 #=============================
+wget_options="${wget_options} --no-check-certificate"
+echo "Disabling certificate check in subsequent requests"
+
+rm eicar_signature
 echo
 echo "Downloading EICAR (3):"
-wget ${wget_options} http://www.rexswain.com/eicar.com > /dev/null
+wget ${wget_options} --output-file eicar_signature http://www.rexswain.com/eicar.com > /dev/null
 if [ $? -ne 0 ]; then
     echo -ne "${GRE}Ok:${NC} EICAR cannot be downloaded"
 else
-    echo -ne "${RED}Error:${NC} EICAR can be downloaded"
+    if [ grep "7CC)7}$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!" eicar_signature ]; then 
+        echo -ne "${GRE}Ok:${NC} EICAR cannot be downloaded"
+    else
+        echo -ne "${RED}Error:${NC} EICAR can be downloaded"
+    fi
 fi
+
 echo "(1/3)."
-wget ${wget_options} http://www.rexswain.com/eicar.zip > /dev/null
+wget ${wget_options} --output-file eicar_signature http://www.rexswain.com/eicar.zip > /dev/null
 if [ $? -ne 0 ]; then
     echo -ne "${GRE}Ok:${NC} EICAR cannot be downloaded"
 else
     echo -ne "${RED}Error:${NC} EICAR can be downloaded"
 fi
 echo "(2/3)."
-wget ${wget_options} http://www.rexswain.com/eicar2.zip > /dev/null
+wget ${wget_options} --output-file eicar_signature http://www.rexswain.com/eicar2.zip > /dev/null
 if [ $? -ne 0 ]; then
     echo -ne "${GRE}Ok:${NC} EICAR cannot be downloaded"
 else
