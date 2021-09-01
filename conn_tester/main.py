@@ -1,4 +1,4 @@
-import requests, ipaddress, sys, logging, speedtest
+import requests, ipaddress, sys, logging, speedtest, pythonping, certifi, re
 
 logging.basicConfig(
     stream=sys.stdout,
@@ -15,6 +15,9 @@ logger = logging.getLogger(logger_name)
 
 class PerfTester:
     def __init__(self):
+        self.ping_target = 'www.google.com'
+        self.ping_count = 10
+        self.ping_interval = 0.5
         self.egress_ip = ''
         self.geolocalization_info = {}
         self.current_pop = ''
@@ -73,6 +76,9 @@ class PerfTester:
         except Exception as e:
             raise e
 
+    def do_ping_test(self):
+        return pythonping.ping(self.ping_target, count=self.ping_count, interval=self.ping_interval)
+
     
 if __name__ == "__main__":
     try: 
@@ -107,19 +113,35 @@ Geolocalization info :
 
         perftester.fss_pop()
         if perftester.current_pop:
-            logging.info(f'Connected to FortiSase pop : {perftester.current_pop}')
+            logging.info(f'Connected to FortiSase pop : {perftester.current_pop}\n')
         else:
             logging.error('Unable to determine the current FortiSase pop')
-        logging.info('Starting speedtest')
+        logging.info('#### Starting speedtest ####')
 
         s = speedtest.Speedtest()
         server = s.get_best_server()
         ds = s.download(threads=None)
         us = s.upload(threads=None, pre_allocate=True)
         logging.info(f'Using server : {server["name"]}, {server["country"]}')
-        logging.info(f'Download speed {ds/1024/1024} mbps')
-        logging.info(f'Upload speed {us/1024/1024} mbps')
+        logging.info(f'Download speed {int(ds/1024/1024)} mbps')
+        logging.info(f'Upload speed {int(us/1024/1024)} mbps')
+        logging.info('#### End speedtest ####\n')
+        
+        logging.info('#### Starting Ping test ####')
+
+        latency_sum = 0
+        for response in perftester.do_ping_test():
+            responseStr = str(response)
+            pattern = "bytes in (.*)ms"
+            latency = re.search(pattern, responseStr).group(1) or 2000
+            ip_pattern = "Reply from(.*),"
+            ip = re.search(ip_pattern, responseStr).group(1) or ''
+            latency_sum += int(float(latency))
+        logging.info(f'Ping done on server {perftester.ping_target} with ip {ip}')   
+        logging.info(f'Ping latency : {latency_sum / perftester.ping_count} ms')
+        
+        logging.info('#### End Ping test ####\n')
 
     except Exception as e:
-        print(e)
+        logging.error(e)
         sys.exit(-1)
