@@ -169,17 +169,23 @@ echo "(2/2)."
 # WebFilter
 #=============================
 sites=(www.magikmobile.com www.cstress.net www.ilovemynanny.com ww1.movie2kproxy.com www.microsofl.bid)
+rm webfilter_ouput
 echo
 echo "Checking WebFilter (${#sites[@]}):"
 i=0
 for site in ${sites[@]}
 do
     i=$(($i+1))
-    wget ${wget_options} ${site} > /dev/null
-    if [ $? -ne 0 ]; then
-        echo -ne "${GRE}Ok:${NC} ${site} cannot be accessed"
+    
+    if wget ${wget_options} --output-file webfilter_output ${site} > /dev/null; then
+        echo -ne "${GRE}Ok:${NC} ${site} cannot be accessed: Connection blocked"
     else
-        echo -ne "${RED}Error:${NC} ${site} can be accessed"
+        if grep -i forti webfilter_output >/dev/null; then 
+            echo -ne "${GRE}Ok:${NC} ${site} cannot cannot be accessed: Reply page is from Fortinet"
+        else
+            echo -ne "${RED}Error:${NC} ${site} can be accessed: Reply page is not replacement message from Fortinet"
+        fi
+
     fi
     echo "(${i}/${#sites[@]})."
 done
