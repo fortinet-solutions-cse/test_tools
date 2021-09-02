@@ -55,7 +55,7 @@ echo "Downloading EICAR (3):"
 if ! wget ${wget_options} --output-document eicar_signature http://www.rexswain.com/eicar.com > /dev/null; then
     echo -ne "${GRE}Ok:${NC} EICAR cannot be downloaded: Connection is blocked"
 else
-    if grep "7CC)7}$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!" eicar_signature >/dev/null; then 
+    if grep "7CC)7}\$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!" eicar_signature >/dev/null; then 
         echo -ne "${RED}Error:${NC} EICAR can be downloaded"
     else
         echo -ne "${GRE}Ok:${NC} EICAR cannot be downloaded: Signature is not found on content returned"
@@ -80,7 +80,7 @@ else
     if unzip eicar_signature 2&>/dev/null; then
         echo -ne "${RED}Error:${NC} EICAR can be downloaded: File is a zip"
     else
-        echo -ne "${GRE}Ok:${NC} EICAR cannot be downloaded: Returned file does not seem to be a zi"
+        echo -ne "${GRE}Ok:${NC} EICAR cannot be downloaded: Returned file does not seem to be a zip"
     fi
 fi
 echo "(3/3)."
