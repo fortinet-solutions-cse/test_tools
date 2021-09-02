@@ -46,44 +46,45 @@ fi
 # EICAR (AV/IPS)
 #=============================
 wget_options="${wget_options} --no-check-certificate"
+echo 
 echo "Disabling certificate check in subsequent requests"
 
-rm eicar_signature
+rm eicar_signature 2>/dev/null
 echo
 echo "Downloading EICAR (3):"
-if wget ${wget_options} --output-file eicar_signature http://www.rexswain.com/eicar.com > /dev/null; then
+if ! wget ${wget_options} --output-document eicar_signature http://www.rexswain.com/eicar.com > /dev/null; then
     echo -ne "${GRE}Ok:${NC} EICAR cannot be downloaded: Connection is blocked"
 else
     if grep "7CC)7}$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!" eicar_signature >/dev/null; then 
-        echo -ne "${GRE}Ok:${NC} EICAR cannot be downloaded: Signature is not found on content returned"
-    else
         echo -ne "${RED}Error:${NC} EICAR can be downloaded"
+    else
+        echo -ne "${GRE}Ok:${NC} EICAR cannot be downloaded: Signature is not found on content returned"
     fi
 fi
 echo "(1/3)."
 
-if wget ${wget_options} --output-file eicar_signature http://www.rexswain.com/eicar.zip > /dev/null; then
+if ! wget ${wget_options} --output-document eicar_signature http://www.rexswain.com/eicar.zip > /dev/null; then
     echo -ne "${GRE}Ok:${NC} EICAR cannot be downloaded: Connection is blocked"
 else
-    if unzip eicar_signature; then
-        echo -ne "${GRE}Ok:${NC} EICAR cannot be downloaded: Returned file does not seem to be a zip"
+    if unzip eicar_signature 2&>/dev/null; then
+        echo -ne "${RED}Error:${NC} EICAR can be downloaded: File is a zip"
     else
-        echo -ne "${RED}Error:${NC} EICAR can be downloaded"
+        echo -ne "${GRE}Ok:${NC} EICAR cannot be downloaded: Returned file does not seem to be a zip"
     fi
 fi
 echo "(2/3)."
 
-if wget ${wget_options} --output-file eicar_signature http://www.rexswain.com/eicar2.zip > /dev/null; then
+if ! wget ${wget_options} --output-document eicar_signature http://www.rexswain.com/eicar2.zip > /dev/null; then
     echo -ne "${GRE}Ok:${NC} EICAR cannot be downloaded: Connection is blocked"
 else
-    if unzip eicar_signature; then
-        echo -ne "${GRE}Ok:${NC} EICAR cannot be downloaded: Returned file does not seem to be a zi"
+    if unzip eicar_signature 2&>/dev/null; then
+        echo -ne "${RED}Error:${NC} EICAR can be downloaded: File is a zip"
     else
-        echo -ne "${RED}Error:${NC} EICAR can be downloaded"
+        echo -ne "${GRE}Ok:${NC} EICAR cannot be downloaded: Returned file does not seem to be a zi"
     fi
 fi
 echo "(3/3)."
-
+exit 0
 #=============================
 # Files (MP3)
 #=============================
@@ -169,7 +170,7 @@ echo "(2/2)."
 # WebFilter
 #=============================
 sites=(www.magikmobile.com www.cstress.net www.ilovemynanny.com ww1.movie2kproxy.com www.microsofl.bid)
-rm webfilter_ouput
+rm webfilter_ouput 2>/dev/null
 echo
 echo "Checking WebFilter (${#sites[@]}):"
 i=0
@@ -177,7 +178,7 @@ for site in ${sites[@]}
 do
     i=$(($i+1))
     
-    if wget ${wget_options} --output-file webfilter_output ${site} > /dev/null; then
+    if wget ${wget_options} --output-document webfilter_output ${site} > /dev/null; then
         echo -ne "${GRE}Ok:${NC} ${site} cannot be accessed: Connection blocked"
     else
         if grep -i forti webfilter_output >/dev/null; then 
