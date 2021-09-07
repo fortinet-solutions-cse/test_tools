@@ -6,9 +6,9 @@ if [ "$1" != "--nocolor" ]; then
     YEL="\e[33m"
     NC="\e[0m"
 fi
-
-wget_options='-qO- -T 30 -t 1'
-curl_options='-s -o /dev/null'
+user_agent="Mozilla/4.0 (compatible; MSIE 9.0; Windows NT 6.1)"
+wget_options=(-qO- -T 30 -t 1 -U "${user_agent}")
+curl_options="-s -o /dev/null"
 
 #=============================
 # Initial connectivity
@@ -18,7 +18,7 @@ echo -e "${YEL}General connectivity tests${NC}"
 echo "=========================="
 echo
 echo "Checking internet connectivity (1):"
-wget ${wget_options} https://www.google.com > /dev/null
+wget "${wget_options[@]}" https://www.google.com > /dev/null
 
 if [ $? -ne 0 ]; then
     echo -ne "${RED}Error:${NC} Cannot get any traffic. Accessing Google.com failed"
@@ -28,7 +28,7 @@ else
 fi
 echo "(1/2)."
 
-wget ${wget_options} https://www.google.com --no-check-certificate> /dev/null
+wget "${wget_options[@]}" https://www.google.com --no-check-certificate> /dev/null
 
 if [ $? -ne 0 ]; then
     echo -ne "${RED}Error:${NC} Cannot get any traffic (certificate check disabled). Accessing Google.com failed"
@@ -45,14 +45,14 @@ fi
 #=============================
 # EICAR (AV/IPS)
 #=============================
-wget_options="${wget_options} --no-check-certificate"
+wget_options+=(--no-check-certificate)
 echo 
 echo "Disabling certificate check in subsequent requests"
 
 rm eicar_signature 2>/dev/null
 echo
 echo "Downloading EICAR (3):"
-if ! wget ${wget_options} --output-document eicar_signature http://www.rexswain.com/eicar.com > /dev/null; then
+if ! wget "${wget_options[@]}" --output-document eicar_signature http://www.rexswain.com/eicar.com > /dev/null; then
     echo -ne "${GRE}Ok:${NC} EICAR cannot be downloaded: Connection is blocked"
 else
     if grep "7CC)7}\$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!" eicar_signature >/dev/null; then 
@@ -63,7 +63,7 @@ else
 fi
 echo "(1/3)."
 
-if ! wget ${wget_options} --output-document eicar_signature http://www.rexswain.com/eicar.zip > /dev/null; then
+if ! wget "${wget_options[@]}" --output-document eicar_signature http://www.rexswain.com/eicar.zip > /dev/null; then
     echo -ne "${GRE}Ok:${NC} EICAR cannot be downloaded: Connection is blocked"
 else
     if unzip eicar_signature 2&>/dev/null; then
@@ -74,7 +74,7 @@ else
 fi
 echo "(2/3)."
 
-if ! wget ${wget_options} --output-document eicar_signature http://www.rexswain.com/eicar2.zip > /dev/null; then
+if ! wget "${wget_options[@]}" --output-document eicar_signature http://www.rexswain.com/eicar2.zip > /dev/null; then
     echo -ne "${GRE}Ok:${NC} EICAR cannot be downloaded: Connection is blocked"
 else
     if unzip eicar_signature 2&>/dev/null; then
@@ -89,7 +89,7 @@ echo "(3/3)."
 #=============================
 echo
 echo "Downloading MP3 files (2):"
-timeout 30 wget ${wget_options} http://www.gurbaniupdesh.org/multimedia/01-Audio%20Books/Baba%20Noadh%20Singh/000%20Introduction%20Bhai%20Sarabjit%20Singh%20Ji%20Gobindpuri.mp3  > /dev/null
+timeout 30 wget "${wget_options[@]}" http://www.gurbaniupdesh.org/multimedia/01-Audio%20Books/Baba%20Noadh%20Singh/000%20Introduction%20Bhai%20Sarabjit%20Singh%20Ji%20Gobindpuri.mp3  > /dev/null
 if [ $? -ne 0 ]; then
     echo -ne "${RED}Error:${NC} Cannot download MP3 files"
 else
@@ -97,7 +97,7 @@ else
 fi
 echo "(1/2)."
 
-timeout 30 wget ${wget_options} http://www.theradiodept.com/media/mp3/david.mp3 > /dev/null
+timeout 30 wget "${wget_options[@]}" http://www.theradiodept.com/media/mp3/david.mp3 > /dev/null
 if [ $? -ne 0 ]; then
     echo -ne "${RED}Error:${NC} Cannot download MP3 files"
 else
@@ -150,18 +150,27 @@ echo "(4/4)."
 #=============================
 echo
 echo "Downloading Viruses (2):"
-wget ${wget_options} http://www.esthetique-realm.net/ > /dev/null
+rm virus_output 2>/dev/null
+wget "${wget_options[@]}" --output-document virus_output http://www.esthetique-realm.net/ > /dev/null
 if [ $? -ne 0 ]; then
-    echo -ne "${GRE}Ok:${NC} JS/Iframe.BYO!tr cannot be downloaded"
+    echo -ne "${GRE}Ok:${NC} JS/Iframe.BYO!tr cannot be downloaded: Connection blocked"
 else
-    echo -ne "${RED}Error:${NC} JS/Iframe.BYO!tr can be downloaded"
+    if grep -i forti virus_output >/dev/null; then 
+        echo -ne "${GRE}Ok:${NC} JS/Iframe.BYO!tr cannot be downloaded: Reply page is from Fortinet"
+    else
+        echo -ne "${RED}Error:${NC} JS/Iframe.BYO!tr can be downloaded: Reply page is not replacement message from Fortinet"
+    fi
 fi
 echo "(1/2)."
-wget ${wget_options} http://www.newalliancebank.com/ > /dev/null
+wget "${wget_options[@]}" --output-document virus_output http://www.newalliancebank.com/ > /dev/null
 if [ $? -ne 0 ]; then
-    echo -ne "${GRE}Ok:${NC} HTML/Refresh.250C!tr cannot be downloaded"
+    echo -ne "${GRE}Ok:${NC} HTML/Refresh.250C!tr cannot be downloaded: Connection blocked"
 else
-    echo -ne "${RED}Error:${NC} HTML/Refresh.250C!tr can be downloaded"
+    if grep -i forti virus_output >/dev/null; then 
+        echo -ne "${GRE}Ok:${NC} HTML/Refresh.250C!tr cannot be downloaded: Reply page is from Fortinet"
+    else
+        echo -ne "${RED}Error:${NC} HTML/Refresh.250C!tr can be downloaded: Reply page is not replacement message from Fortinet"
+    fi
 fi
 echo "(2/2)."
 
@@ -177,7 +186,7 @@ for site in ${sites[@]}
 do
     i=$(($i+1))
     
-    if wget ${wget_options} --output-document webfilter_output ${site} > /dev/null; then
+    if wget "${wget_options[@]}" --output-document webfilter_output ${site} > /dev/null; then
         echo -ne "${GRE}Ok:${NC} ${site} cannot be accessed: Connection blocked"
     else
         if grep -i forti webfilter_output >/dev/null; then 
@@ -194,14 +203,14 @@ done
 #=============================
 # AppControl
 #=============================
-sites=(www.logmeinrescue.com unblockvideos.com)
+sites=(www.logmeinrescue.com unblockvideos.com youtube.com)
 echo
 echo "Checking AppControl (${#sites[@]}):"
 i=0
 for site in ${sites[@]}
 do
     i=$(($i+1))
-    wget ${wget_options} ${site} > /dev/null
+    wget "${wget_options[@]}" ${site} > /dev/null
     if [ $? -ne 0 ]; then
         echo -ne "${GRE}Ok:${NC} ${site} cannot be accessed"
     else
