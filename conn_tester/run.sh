@@ -13,6 +13,7 @@ curl_options="-s -o /dev/null"
 #=============================
 # Initial connectivity
 #=============================
+date
 echo
 echo -e "${YEL}General connectivity tests${NC}"
 echo "=========================="
@@ -50,6 +51,7 @@ echo
 echo "Disabling certificate check in subsequent requests"
 
 rm eicar_signature 2>/dev/null
+date
 echo
 echo "Downloading EICAR (3):"
 if ! wget "${wget_options[@]}" --output-document eicar_signature http://www.rexswain.com/eicar.com > /dev/null; then
@@ -87,6 +89,7 @@ echo "(3/3)."
 #=============================
 # Files (MP3)
 #=============================
+date
 echo
 echo "Downloading MP3 files (2):"
 timeout 30 wget "${wget_options[@]}" http://www.gurbaniupdesh.org/multimedia/01-Audio%20Books/Baba%20Noadh%20Singh/000%20Introduction%20Bhai%20Sarabjit%20Singh%20Ji%20Gobindpuri.mp3  > /dev/null
@@ -108,6 +111,7 @@ echo "(2/2)."
 #=============================
 # DLP
 #=============================
+date
 echo
 echo "Checking DLP(4)"
 echo "  Credit Card (Amex):"
@@ -148,6 +152,7 @@ echo "(4/4)."
 #=============================
 # Viruses
 #=============================
+date
 echo
 echo "Downloading Viruses (2):"
 rm virus_output 2>/dev/null
@@ -177,6 +182,7 @@ echo "(2/2)."
 #=============================
 # WebFilter
 #=============================
+date
 sites=(www.magikmobile.com www.cstress.net www.ilovemynanny.com ww1.movie2kproxy.com www.microsofl.bid)
 rm webfilter_ouput 2>/dev/null
 echo
@@ -203,6 +209,7 @@ done
 #=============================
 # AppControl
 #=============================
+date
 sites=(www.logmeinrescue.com unblockvideos.com youtube.com)
 echo
 echo "Checking AppControl (${#sites[@]}):"
