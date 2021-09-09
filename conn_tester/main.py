@@ -41,7 +41,7 @@ class PerfTester:
 
     def get_egress_ip(self):
         try:
-            j = requests.get(self.egress_ip_api_url, verify=True)
+            j = requests.get(self.egress_ip_api_url, verify=False)
             self.egress_ip = j.json()['ip']
 
         except Exception as e:
@@ -51,7 +51,7 @@ class PerfTester:
 
     def get_geolocalization_info(self):
         try:
-            r = requests.get(self.geolocaization_api_url + self.egress_ip, verify=True)
+            r = requests.get(self.geolocaization_api_url + self.egress_ip, verify=False)
             self.geolocalization_info = r.json()
 
         except Exception as e:
