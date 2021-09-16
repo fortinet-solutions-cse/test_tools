@@ -159,17 +159,17 @@ echo
 echo "Downloading MP3 files (2):"
 timeout 30 wget "${wget_options[@]}" http://www.gurbaniupdesh.org/multimedia/01-Audio%20Books/Baba%20Noadh%20Singh/000%20Introduction%20Bhai%20Sarabjit%20Singh%20Ji%20Gobindpuri.mp3  > /dev/null
 if [ $? -ne 0 ]; then
-    echo -ne "${RED}Error:${NC} Cannot download MP3 files"
+    fail_log "Download MP3 files", "http://www.gurbaniupdesh.org/", "Cannot download mp3"
 else
-    echo -ne "${GRE}Ok:${NC} MP3 file can be downloaded normally"
+    success_log "Download MP3 files", "http://www.gurbaniupdesh.org/"
 fi
 echo "(1/2)."
 
 timeout 30 wget "${wget_options[@]}" http://www.theradiodept.com/media/mp3/david.mp3 > /dev/null
 if [ $? -ne 0 ]; then
-    echo -ne "${RED}Error:${NC} Cannot download MP3 files"
+    fail_log "Download MP3 files", "http://www.theradiodept.com/", "Cannot download mp3"
 else
-    echo -ne "${GRE}Ok:${NC} MP3 file can be downloaded normally"
+    success_log "Download MP3 files", "http://www.theradiodept.com/"
 fi
 echo "(2/2)."
 
@@ -179,41 +179,58 @@ echo "(2/2)."
 date
 echo
 echo "Checking DLP(4)"
+
 echo "  Credit Card (Amex):"
 if curl ${curl_options} -X POST  -H "Content-Type:multipart/form-data; boundary=---------------------------52410911313245418552292478843" -F 'item_meta[6]=371193356045439' http://dlptest.com/http-post; then
-    echo -ne "   ${GRE}Ok:${NC} Cannot leak data"
+    fail_log "Check DLP", "Amex", "Data seems to be leaked"
 else
-    echo -ne "   ${RED}Error:${NC} Data seems to be leaked"
+    success_log "Check DLP", "Amex"
 fi
 echo "(1/4)."
 
 echo "  Social security number:"
-curl ${curl_options} -X POST  -H "Content-Type:multipart/form-data; boundary=---------------------------52410911313245418552292478843" -F 'item_meta[6]=123-45-6789' http://dlptest.com/http-post
-if [ $? -ne 0 ]; then
-    echo -ne "   ${GRE}Ok:${NC} Cannot leak data"
+if curl ${curl_options} -X POST  -H "Content-Type:multipart/form-data; boundary=---------------------------52410911313245418552292478843" -F 'item_meta[6]=123-45-6789' http://dlptest.com/http-post; then
+    fail_log "Check DLP", "Social Security Number", "Data seems to be leaked"
 else
-    echo -ne "   ${RED}Error:${NC} Data seems to be leaked"
+    success_log "Check DLP", "Social Security Number"
 fi
 echo "(2/4)."
 
 echo "  Spanish ID number:"
-curl ${curl_options} -X POST  -H "Content-Type:multipart/form-data; boundary=---------------------------52410911313245418552292478843" -F 'item_meta[6]=14332564D' http://dlptest.com/http-post
-if [ $? -ne 0 ]; then
-    echo -ne "   ${GRE}Ok:${NC} Cannot leak data"
+if curl ${curl_options} -X POST  -H "Content-Type:multipart/form-data; boundary=---------------------------52410911313245418552292478843" -F 'item_meta[6]=14332564D' http://dlptest.com/http-post; then
+    fail_log "Check DLP", "Spanish ID number", "Data seems to be leaked"
 else
-    echo -ne "   ${RED}Error:${NC} Data seems to be leaked"
+    success_log "Check DLP", "Spanish ID number"
 fi
 echo "(3/4)."
 
 echo "  Simple 3 digit number (should be leaked):"
-curl ${curl_options} -X POST  -H "Content-Type:multipart/form-data; boundary=---------------------------52410911313245418552292478843" -F 'item_meta[6]=123' http://dlptest.com/http-post
-if [ $? -ne 0 ]; then
-    echo -ne "   ${RED}Error:${NC} Cannot leak/send non sensitive data"
+if curl ${curl_options} -X POST  -H "Content-Type:multipart/form-data; boundary=---------------------------52410911313245418552292478843" -F 'item_meta[6]=123' http://dlptest.com/http-post; then
+    success_log "Check DLP", "Plain number - should allow transfers"
 else
-    echo -ne "   ${GRE}Ok:${NC} Non sensitive data can be sent"
+    fail_log "Check DLP", "Plain number - should allow transfers", "Simple data cannot be sent"
 fi
 echo "(4/4)."
 
+exit 0
+**********************************
+**********************************
+**********************************
+**********************************
+**********************************
+**********************************
+**********************************
+**********************************
+**********************************
+**********************************
+**********************************
+**********************************
+**********************************
+**********************************
+**********************************
+**********************************
+**********************************
+**********************************
 #=============================
 # Viruses
 #=============================
