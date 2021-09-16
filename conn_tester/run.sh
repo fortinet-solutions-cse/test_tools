@@ -1,41 +1,105 @@
 #!/bin/bash
+RED="\e[31m"
+GRE="\e[32m"
+YEL="\e[33m"
+NC="\e[0m"
 
-if [ "$1" != "--nocolor" ]; then
-    RED="\e[31m"
-    GRE="\e[32m"
-    YEL="\e[33m"
-    NC="\e[0m"
-fi
+xml_file="test_results.xml"
 user_agent="Mozilla/4.0 (compatible; MSIE 9.0; Windows NT 6.1)"
 wget_options=(-qO- -T 30 -t 1 -U "${user_agent}")
 curl_options="-s -o /dev/null"
+
+trap finish_log EXIT SIGINT SIGQUIT SIGKILL SIGTERM
+
+while true; do
+    case "$1" in
+        -nc | --nocolor ) 
+            RED=""
+            GRE=""
+            YEL=""
+            NC=""
+            shift
+            ;;
+        -x | --xml )
+            XML=true
+            shift
+            ;;
+        -h )
+            echo "Use:"
+            echo " -nc | --nocolor for single color output (no ascii color codes)"
+            echo " -x  | --xml     for writing test results to xml file (junit format)"
+            echo " -h              this help"
+            shift
+            ;;
+        * )
+            break
+            ;;
+    esac
+done
+
+function start_log() {
+
+    echo -e "${YEL}General connectivity tests${NC}"
+    echo "=========================="
+    if [ ${XML} ]; then
+        echo "<testsuite tests=\"3\">" > ${xml_file}
+    fi
+}
+
+function finish_log () {
+
+    echo -e "Finished.${NC}"
+    if [ ${XML} ]; then
+        echo "</testsuite>" >> ${xml_file}
+    fi
+}
+
+function success_log() { # test name, test variation
+
+    echo -ne "${GRE}Ok:${NC} $1 : $2"
+    if [ ${XML} ]; then
+        echo "<testcase classname=\"$2\" name=\"$1\"/>" >> ${xml_file}
+    fi
+}
+
+function fail_log() {  # test name, test variation, details 
+
+    echo -ne ${RED}Error:${NC} $1 : $2 : $3 
+
+    if [ ${XML} ]; then
+        echo "<testcase classname=\"$2\" name=\"$1\">"  >> ${xml_file}
+        echo "      <failure type=\"Error\"> $3 </failure>"  >> ${xml_file}
+        echo "</testcase>"  >> ${xml_file}
+    fi
+}   
+
+
 
 #=============================
 # Initial connectivity
 #=============================
 date
 echo
-echo -e "${YEL}General connectivity tests${NC}"
-echo "=========================="
+start_log
 echo
-echo "Checking internet connectivity (1):"
+echo "Checking internet connectivity (2):"
 wget "${wget_options[@]}" https://www.google.com > /dev/null
 
 if [ $? -ne 0 ]; then
-    echo -ne "${RED}Error:${NC} Cannot get any traffic. Accessing Google.com failed"
+    fail_log "Checking internet connectivity", "Google", "Cannot get any traffic. Accessing Google.com failed"
     ssl_inspection_hint1=true
 else
-    echo -ne "${GRE}Ok:${NC} Google.com can be accessed. Internet connectivity seems to be ok"
+    success_log "Checking internet connectivity", "Google"
 fi
 echo "(1/2)."
 
 wget "${wget_options[@]}" https://www.google.com --no-check-certificate> /dev/null
 
 if [ $? -ne 0 ]; then
-    echo -ne "${RED}Error:${NC} Cannot get any traffic (certificate check disabled). Accessing Google.com failed"
+    fail_log "Checking internet connectivity", "Google (cert check disabled)", "Cannot get any traffic. Accessing Google.com failed"
 else
     ssl_inspection_hint2=true
-    echo -ne "${GRE}Ok:${NC} Google.com can be accessed (certificate check disabled). Internet connectivity seems to be ok"
+    success_log "Checking internet connectivity", "Google (cert check disabled)"
 fi
 echo "(2/2)."
 
@@ -53,39 +117,40 @@ echo "Disabling certificate check in subsequent requests"
 rm eicar_signature 2>/dev/null
 date
 echo
-echo "Downloading EICAR (3):"
+echo "Detect EICAR (3):"
 if ! wget "${wget_options[@]}" --output-document eicar_signature http://www.rexswain.com/eicar.com > /dev/null; then
-    echo -ne "${GRE}Ok:${NC} EICAR cannot be downloaded: Connection is blocked"
+    success_log "Detect EICAR", "http/plain text"
 else
     if grep "7CC)7}\$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!" eicar_signature >/dev/null; then 
-        echo -ne "${RED}Error:${NC} EICAR can be downloaded"
+        fail_log "Detect EICAR", "http/plain text", "EICAR can be downloaded"
     else
-        echo -ne "${GRE}Ok:${NC} EICAR cannot be downloaded: Signature is not found on content returned"
+        success_log "Detect EICAR", "http/plain text"
     fi
 fi
 echo "(1/3)."
 
 if ! wget "${wget_options[@]}" --output-document eicar_signature http://www.rexswain.com/eicar.zip > /dev/null; then
-    echo -ne "${GRE}Ok:${NC} EICAR cannot be downloaded: Connection is blocked"
+    success_log "Detect EICAR", "http/zip"
 else
     if unzip eicar_signature 2&>/dev/null; then
-        echo -ne "${RED}Error:${NC} EICAR can be downloaded: File is a zip"
+        fail_log "Detect EICAR", "http/zip", "EICAR can be downloaded: File is a zip"
     else
-        echo -ne "${GRE}Ok:${NC} EICAR cannot be downloaded: Returned file does not seem to be a zip"
+        success_log "Detect EICAR", "http/zip"
     fi
 fi
 echo "(2/3)."
 
 if ! wget "${wget_options[@]}" --output-document eicar_signature http://www.rexswain.com/eicar2.zip > /dev/null; then
-    echo -ne "${GRE}Ok:${NC} EICAR cannot be downloaded: Connection is blocked"
+    success_log "Detect EICAR", "http/double zip"
 else
     if unzip eicar_signature 2&>/dev/null; then
-        echo -ne "${RED}Error:${NC} EICAR can be downloaded: File is a zip"
+        fail_log "Detect EICAR", "http/double zip", "EICAR can be downloaded: File is a zip"
     else
-        echo -ne "${GRE}Ok:${NC} EICAR cannot be downloaded: Returned file does not seem to be a zip"
+        success_log "Detect EICAR", "http/double zip"
     fi
 fi
 echo "(3/3)."
+
 #=============================
 # Files (MP3)
 #=============================
@@ -226,5 +291,6 @@ do
     echo "(${i}/${#sites[@]})."
 done
 
+finish_log
 
 # wget --no-check-certificate https://secure.eicar.org/eicar.com
