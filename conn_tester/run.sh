@@ -86,20 +86,20 @@ echo "Checking internet connectivity (2):"
 wget "${wget_options[@]}" https://www.google.com > /dev/null
 
 if [ $? -ne 0 ]; then
-    fail_log "Checking internet connectivity", "Google", "Cannot get any traffic. Accessing Google.com failed"
+    fail_log "Checking internet connectivity" "Google" "Cannot get any traffic. Accessing Google.com failed"
     ssl_inspection_hint1=true
 else
-    success_log "Checking internet connectivity", "Google"
+    success_log "Checking internet connectivity" "Google"
 fi
 echo "(1/2)."
 
 wget "${wget_options[@]}" https://www.google.com --no-check-certificate> /dev/null
 
 if [ $? -ne 0 ]; then
-    fail_log "Checking internet connectivity", "Google (cert check disabled)", "Cannot get any traffic. Accessing Google.com failed"
+    fail_log "Checking internet connectivity" "Google (cert check disabled)" "Cannot get any traffic. Accessing Google.com failed"
 else
     ssl_inspection_hint2=true
-    success_log "Checking internet connectivity", "Google (cert check disabled)"
+    success_log "Checking internet connectivity" "Google (cert check disabled)"
 fi
 echo "(2/2)."
 
@@ -119,34 +119,34 @@ date
 echo
 echo "Detect EICAR (3):"
 if ! wget "${wget_options[@]}" --output-document eicar_signature http://www.rexswain.com/eicar.com > /dev/null; then
-    success_log "Detect EICAR", "http/plain text"
+    success_log "Detect EICAR" "http/plain text"
 else
     if grep "7CC)7}\$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!" eicar_signature >/dev/null; then 
-        fail_log "Detect EICAR", "http/plain text", "EICAR can be downloaded"
+        fail_log "Detect EICAR" "http/plain text" "EICAR can be downloaded"
     else
-        success_log "Detect EICAR", "http/plain text"
+        success_log "Detect EICAR" "http/plain text"
     fi
 fi
 echo "(1/3)."
 
 if ! wget "${wget_options[@]}" --output-document eicar_signature http://www.rexswain.com/eicar.zip > /dev/null; then
-    success_log "Detect EICAR", "http/zip"
+    success_log "Detect EICAR" "http/zip"
 else
     if unzip eicar_signature 2&>/dev/null; then
-        fail_log "Detect EICAR", "http/zip", "EICAR can be downloaded: File is a zip"
+        fail_log "Detect EICAR" "http/zip" "EICAR can be downloaded: File is a zip"
     else
-        success_log "Detect EICAR", "http/zip"
+        success_log "Detect EICAR" "http/zip"
     fi
 fi
 echo "(2/3)."
 
 if ! wget "${wget_options[@]}" --output-document eicar_signature http://www.rexswain.com/eicar2.zip > /dev/null; then
-    success_log "Detect EICAR", "http/double zip"
+    success_log "Detect EICAR" "http/double zip"
 else
     if unzip eicar_signature 2&>/dev/null; then
-        fail_log "Detect EICAR", "http/double zip", "EICAR can be downloaded: File is a zip"
+        fail_log "Detect EICAR" "http/double zip" "EICAR can be downloaded: File is a zip"
     else
-        success_log "Detect EICAR", "http/double zip"
+        success_log "Detect EICAR" "http/double zip"
     fi
 fi
 echo "(3/3)."
@@ -159,17 +159,17 @@ echo
 echo "Downloading MP3 files (2):"
 timeout 30 wget "${wget_options[@]}" http://www.gurbaniupdesh.org/multimedia/01-Audio%20Books/Baba%20Noadh%20Singh/000%20Introduction%20Bhai%20Sarabjit%20Singh%20Ji%20Gobindpuri.mp3  > /dev/null
 if [ $? -ne 0 ]; then
-    fail_log "Download MP3 files", "http://www.gurbaniupdesh.org/", "Cannot download mp3"
+    fail_log "Download MP3 files" "http://www.gurbaniupdesh.org/" "Cannot download mp3"
 else
-    success_log "Download MP3 files", "http://www.gurbaniupdesh.org/"
+    success_log "Download MP3 files" "http://www.gurbaniupdesh.org/"
 fi
 echo "(1/2)."
 
 timeout 30 wget "${wget_options[@]}" http://www.theradiodept.com/media/mp3/david.mp3 > /dev/null
 if [ $? -ne 0 ]; then
-    fail_log "Download MP3 files", "http://www.theradiodept.com/", "Cannot download mp3"
+    fail_log "Download MP3 files" "http://www.theradiodept.com/" "Cannot download mp3"
 else
-    success_log "Download MP3 files", "http://www.theradiodept.com/"
+    success_log "Download MP3 files" "http://www.theradiodept.com/"
 fi
 echo "(2/2)."
 
@@ -182,55 +182,36 @@ echo "Checking DLP(4)"
 
 echo "  Credit Card (Amex):"
 if curl ${curl_options} -X POST  -H "Content-Type:multipart/form-data; boundary=---------------------------52410911313245418552292478843" -F 'item_meta[6]=371193356045439' http://dlptest.com/http-post; then
-    fail_log "Check DLP", "Amex", "Data seems to be leaked"
+    fail_log "Check DLP" "Amex" "Data seems to be leaked"
 else
-    success_log "Check DLP", "Amex"
+    success_log "Check DLP" "Amex"
 fi
 echo "(1/4)."
 
 echo "  Social security number:"
 if curl ${curl_options} -X POST  -H "Content-Type:multipart/form-data; boundary=---------------------------52410911313245418552292478843" -F 'item_meta[6]=123-45-6789' http://dlptest.com/http-post; then
-    fail_log "Check DLP", "Social Security Number", "Data seems to be leaked"
+    fail_log "Check DLP" "Social Security Number" "Data seems to be leaked"
 else
-    success_log "Check DLP", "Social Security Number"
+    success_log "Check DLP" "Social Security Number"
 fi
 echo "(2/4)."
 
 echo "  Spanish ID number:"
 if curl ${curl_options} -X POST  -H "Content-Type:multipart/form-data; boundary=---------------------------52410911313245418552292478843" -F 'item_meta[6]=14332564D' http://dlptest.com/http-post; then
-    fail_log "Check DLP", "Spanish ID number", "Data seems to be leaked"
+    fail_log "Check DLP" "Spanish ID number" "Data seems to be leaked"
 else
-    success_log "Check DLP", "Spanish ID number"
+    success_log "Check DLP" "Spanish ID number"
 fi
 echo "(3/4)."
 
 echo "  Simple 3 digit number (should be leaked):"
 if curl ${curl_options} -X POST  -H "Content-Type:multipart/form-data; boundary=---------------------------52410911313245418552292478843" -F 'item_meta[6]=123' http://dlptest.com/http-post; then
-    success_log "Check DLP", "Plain number - should allow transfers"
+    success_log "Check DLP" "Plain number - should allow transfers"
 else
-    fail_log "Check DLP", "Plain number - should allow transfers", "Simple data cannot be sent"
+    fail_log "Check DLP" "Plain number - should allow transfers" "Simple data cannot be sent"
 fi
 echo "(4/4)."
 
-exit 0
-**********************************
-**********************************
-**********************************
-**********************************
-**********************************
-**********************************
-**********************************
-**********************************
-**********************************
-**********************************
-**********************************
-**********************************
-**********************************
-**********************************
-**********************************
-**********************************
-**********************************
-**********************************
 #=============================
 # Viruses
 #=============================
