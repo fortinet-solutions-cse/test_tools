@@ -289,6 +289,4 @@ do
     echo "(${i}/${#sites[@]})."
 done
 
-finish_log
-
 # wget --no-check-certificate https://secure.eicar.org/eicar.com
