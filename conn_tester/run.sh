@@ -221,23 +221,23 @@ echo "Downloading Viruses (2):"
 rm virus_output 2>/dev/null
 wget "${wget_options[@]}" --output-document virus_output http://www.esthetique-realm.net/ > /dev/null
 if [ $? -ne 0 ]; then
-    echo -ne "${GRE}Ok:${NC} JS/Iframe.BYO!tr cannot be downloaded: Connection blocked"
+    success_log "AV" "JS/Iframe.BYO!tr"
 else
     if grep -i forti virus_output >/dev/null; then 
-        echo -ne "${GRE}Ok:${NC} JS/Iframe.BYO!tr cannot be downloaded: Reply page is from Fortinet"
+        success_log "AV" "JS/Iframe.BYO!tr"
     else
-        echo -ne "${RED}Error:${NC} JS/Iframe.BYO!tr can be downloaded: Reply page is not replacement message from Fortinet"
+        fail_log "AV" "JS/Iframe.BYO!tr" "Virus can be downloaded: Reply page is not replacement message from Fortinet"
     fi
 fi
 echo "(1/2)."
 wget "${wget_options[@]}" --output-document virus_output http://www.newalliancebank.com/ > /dev/null
 if [ $? -ne 0 ]; then
-    echo -ne "${GRE}Ok:${NC} HTML/Refresh.250C!tr cannot be downloaded: Connection blocked"
+    success_log "AV" "HTML/Refresh.250C!tr"
 else
     if grep -i forti virus_output >/dev/null; then 
-        echo -ne "${GRE}Ok:${NC} HTML/Refresh.250C!tr cannot be downloaded: Reply page is from Fortinet"
+        success_log "AV" "HTML/Refresh.250C!tr"
     else
-        echo -ne "${RED}Error:${NC} HTML/Refresh.250C!tr can be downloaded: Reply page is not replacement message from Fortinet"
+        fail_log "AV" "HTML/Refresh.250C!tr" "Virus can be downloaded: Reply page is not replacement message from Fortinet"
     fi
 fi
 echo "(2/2)."
@@ -256,12 +256,12 @@ do
     i=$(($i+1))
     
     if wget "${wget_options[@]}" --output-document webfilter_output ${site} > /dev/null; then
-        echo -ne "${GRE}Ok:${NC} ${site} cannot be accessed: Connection blocked"
+        success_log "WebFilter" ${site}
     else
         if grep -i forti webfilter_output >/dev/null; then 
-            echo -ne "${GRE}Ok:${NC} ${site} cannot cannot be accessed: Reply page is from Fortinet"
+            success_log "WebFilter" ${site}
         else
-            echo -ne "${RED}Error:${NC} ${site} can be accessed: Reply page is not replacement message from Fortinet"
+            fail_log "WebFilter" ${site} "Site can be accessed: Reply page is not replacement message from Fortinet"
         fi
 
     fi
@@ -273,7 +273,7 @@ done
 # AppControl
 #=============================
 date
-sites=(www.logmeinrescue.com unblockvideos.com youtube.com)
+sites=(unblockvideos.com youtube.com)
 echo
 echo "Checking AppControl (${#sites[@]}):"
 i=0
@@ -282,11 +282,9 @@ do
     i=$(($i+1))
     wget "${wget_options[@]}" ${site} > /dev/null
     if [ $? -ne 0 ]; then
-        echo -ne "${GRE}Ok:${NC} ${site} cannot be accessed"
+        success_log "AppControl" ${site}
     else
-        echo -ne "${RED}Error:${NC} ${site} can be accessed"
+        fail_log "AppControl" ${site} "Site can be accessed"
     fi
     echo "(${i}/${#sites[@]})."
 done
-
-# wget --no-check-certificate https://secure.eicar.org/eicar.com
