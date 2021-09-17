@@ -1,4 +1,7 @@
 import requests, ipaddress, sys, logging, speedtest, pythonping, certifi, re
+from requests.packages.urllib3.exceptions import InsecureRequestWarning
+
+requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 
 logging.basicConfig(
     stream=sys.stdout,
@@ -15,7 +18,7 @@ logger = logging.getLogger(logger_name)
 
 class PerfTester:
     def __init__(self):
-        self.ping_target = 'www.google.com'
+        self.ping_target = '8.8.8.8'
         self.ping_count = 10
         self.ping_interval = 0.5
         self.egress_ip = ''
@@ -99,15 +102,12 @@ if __name__ == "__main__":
         perftester.get_geolocalization_info()
 
         if perftester.geolocalization_info['status'] == 'success':
-            logging.info(f'''
-Geolocalization info :
-
-    -  Country : {perftester.geolocalization_info['country']}
-    -  CountryCode : {perftester.geolocalization_info['countryCode']}
-    -  Timezone : {perftester.geolocalization_info['timezone']}
-    -  Isp : {perftester.geolocalization_info['isp']}
-    -  AS : {perftester.geolocalization_info['as']}
-            ''')
+            logging.info(f'Country : {perftester.geolocalization_info["country"]}')
+            logging.info(f'CountryCode : {perftester.geolocalization_info["countryCode"]}')
+            logging.info(f'Timezone : {perftester.geolocalization_info["timezone"]}')
+            logging.info(f'Isp : {perftester.geolocalization_info["isp"]}')
+            logging.info(f'AS : {perftester.geolocalization_info["as"]}')
+            
         else:
             logging.error('Unable to retrieve geolocalization info')
 
@@ -134,10 +134,10 @@ Geolocalization info :
             responseStr = str(response)
             pattern = "bytes in (.*)ms"
             latency = re.search(pattern, responseStr).group(1) or 2000
-            ip_pattern = "Reply from(.*),"
+            ip_pattern = "Reply from (.*),"
             ip = re.search(ip_pattern, responseStr).group(1) or ''
             latency_sum += int(float(latency))
-        logging.info(f'Ping done on server {perftester.ping_target} with ip {ip}')   
+        logging.info(f'Ping done on server {perftester.ping_target} with ip "{ip}"')   
         logging.info(f'Ping latency : {latency_sum / perftester.ping_count} ms')
         
         logging.info('#### End Ping test ####\n')
