@@ -58,7 +58,7 @@ function success_log() { # test name, test variation
 
     echo -ne "${GRE}Ok:${NC} $1 : $2"
     if [ ${XML} ]; then
-        echo "<testcase classname=\"$2\" name=\"$1\"/>" >> ${xml_file}
+        echo "<testcase classname=\"$1\" name=\"$2\"/>" >> ${xml_file}
     fi
 }
 
@@ -67,7 +67,7 @@ function fail_log() {  # test name, test variation, details
     echo -ne ${RED}Error:${NC} $1 : $2 : $3 
 
     if [ ${XML} ]; then
-        echo "<testcase classname=\"$2\" name=\"$1\">"  >> ${xml_file}
+        echo "<testcase classname=\"$1\" name=\"$2\">"  >> ${xml_file}
         echo "      <failure type=\"Error\"> $3 </failure>"  >> ${xml_file}
         echo "</testcase>"  >> ${xml_file}
     fi
