@@ -42,7 +42,7 @@ function start_log() {
     echo -e "${YEL}General connectivity tests${NC}"
     echo "=========================="
     if [ ${XML} ]; then
-        echo "<testsuite tests=\"3\">" > ${xml_file}
+        echo "<testsuite>" > ${xml_file}
     fi
 }
 
@@ -118,7 +118,8 @@ rm eicar_signature 2>/dev/null
 date
 echo
 echo "Detect EICAR (3):"
-if ! wget "${wget_options[@]}" --output-document eicar_signature http://www.rexswain.com/eicar.com > /dev/null; then
+wget "${wget_options[@]}" --output-document eicar_signature http://www.rexswain.com/eicar.com > /dev/null
+if [ $? -ne 0 ]; then
     success_log "Detect EICAR" "http/plain text"
 else
     if grep "7CC)7}\$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!" eicar_signature >/dev/null; then 
@@ -128,8 +129,8 @@ else
     fi
 fi
 echo "(1/3)."
-
-if ! wget "${wget_options[@]}" --output-document eicar_signature http://www.rexswain.com/eicar.zip > /dev/null; then
+wget "${wget_options[@]}" --output-document eicar_signature http://www.rexswain.com/eicar.zip > /dev/null
+if [ $? -ne 0 ]; then
     success_log "Detect EICAR" "http/zip"
 else
     if unzip eicar_signature 2&>/dev/null; then
@@ -139,8 +140,8 @@ else
     fi
 fi
 echo "(2/3)."
-
-if ! wget "${wget_options[@]}" --output-document eicar_signature http://www.rexswain.com/eicar2.zip > /dev/null; then
+wget "${wget_options[@]}" --output-document eicar_signature http://www.rexswain.com/eicar2.zip > /dev/null
+if [ $? -ne 0 ]; then
     success_log "Detect EICAR" "http/double zip"
 else
     if unzip eicar_signature 2&>/dev/null; then
@@ -181,34 +182,38 @@ echo
 echo "Checking DLP(4)"
 
 echo "  Credit Card (Amex):"
-if curl ${curl_options} -X POST  -H "Content-Type:multipart/form-data; boundary=---------------------------52410911313245418552292478843" -F 'item_meta[6]=371193356045439' http://dlptest.com/http-post; then
-    fail_log "Check DLP" "Amex" "Data seems to be leaked"
-else
+curl ${curl_options} -X POST  -H "Content-Type:multipart/form-data; boundary=---------------------------52410911313245418552292478843" -F 'item_meta[6]=371193356045439' http://dlptest.com/http-post;
+if [ $? -ne 0 ]; then
     success_log "Check DLP" "Amex"
+else
+    fail_log "Check DLP" "Amex" "Data seems to be leaked"
 fi
 echo "(1/4)."
 
 echo "  Social security number:"
-if curl ${curl_options} -X POST  -H "Content-Type:multipart/form-data; boundary=---------------------------52410911313245418552292478843" -F 'item_meta[6]=123-45-6789' http://dlptest.com/http-post; then
-    fail_log "Check DLP" "Social Security Number" "Data seems to be leaked"
-else
+curl ${curl_options} -X POST  -H "Content-Type:multipart/form-data; boundary=---------------------------52410911313245418552292478843" -F 'item_meta[6]=123-45-6789' http://dlptest.com/http-post
+if [ $? -ne 0 ]; then
     success_log "Check DLP" "Social Security Number"
+else
+    fail_log "Check DLP" "Social Security Number" "Data seems to be leaked"
 fi
 echo "(2/4)."
 
 echo "  Spanish ID number:"
-if curl ${curl_options} -X POST  -H "Content-Type:multipart/form-data; boundary=---------------------------52410911313245418552292478843" -F 'item_meta[6]=14332564D' http://dlptest.com/http-post; then
-    fail_log "Check DLP" "Spanish ID number" "Data seems to be leaked"
-else
+curl ${curl_options} -X POST  -H "Content-Type:multipart/form-data; boundary=---------------------------52410911313245418552292478843" -F 'item_meta[6]=14332564D' http://dlptest.com/http-post
+if [ $? -ne 0 ]; then
     success_log "Check DLP" "Spanish ID number"
+else
+    fail_log "Check DLP" "Spanish ID number" "Data seems to be leaked"
 fi
 echo "(3/4)."
 
 echo "  Simple 3 digit number (should be leaked):"
-if curl ${curl_options} -X POST  -H "Content-Type:multipart/form-data; boundary=---------------------------52410911313245418552292478843" -F 'item_meta[6]=123' http://dlptest.com/http-post; then
-    success_log "Check DLP" "Plain number - should allow transfers"
-else
+curl ${curl_options} -X POST  -H "Content-Type:multipart/form-data; boundary=---------------------------52410911313245418552292478843" -F 'item_meta[6]=123' http://dlptest.com/http-post
+if [ $? -ne 0 ]; then
     fail_log "Check DLP" "Plain number - should allow transfers" "Simple data cannot be sent"
+else
+    success_log "Check DLP" "Plain number - should allow transfers"
 fi
 echo "(4/4)."
 
@@ -219,28 +224,42 @@ date
 echo
 echo "Downloading Viruses (2):"
 rm virus_output 2>/dev/null
-wget "${wget_options[@]}" --output-document virus_output http://www.esthetique-realm.net/ > /dev/null
-if [ $? -ne 0 ]; then
-    success_log "AV" "JS/Iframe.BYO!tr"
-else
-    if grep -i forti virus_output >/dev/null; then 
-        success_log "AV" "JS/Iframe.BYO!tr"
+# Repeat 5 times to ensure virus is sent, detected by the AV engine and then blocked
+echo -ne "  Iteration: "
+for i in {1..5}
+do
+    echo -ne "\n     ${i} "
+    wget "${wget_options[@]}" --output-document virus_output http://www.esthetique-realm.net/ > /dev/null
+
+    if [ $? -ne 0 ]; then
+        success_log "AV" "JS/Iframe.BYO!tr ${i}"
     else
-        fail_log "AV" "JS/Iframe.BYO!tr" "Virus can be downloaded: Reply page is not replacement message from Fortinet"
+        if grep -i forti virus_output >/dev/null; then 
+            success_log "AV" "JS/Iframe.BYO!tr ${i}"
+        else
+            fail_log "AV" "JS/Iframe.BYO!tr ${i}" "Virus can be downloaded: Reply page is not replacement message from Fortinet"
+        fi
     fi
-fi
-echo "(1/2)."
-wget "${wget_options[@]}" --output-document virus_output http://www.newalliancebank.com/ > /dev/null
-if [ $? -ne 0 ]; then
-    success_log "AV" "HTML/Refresh.250C!tr"
-else
-    if grep -i forti virus_output >/dev/null; then 
-        success_log "AV" "HTML/Refresh.250C!tr"
+done
+echo -ne "\n(1/2)."
+# Repeat 5 times to ensure virus is sent, detected by the AV engine and then blocked
+echo -ne "\n  Iteration: "
+for i in {1..5}
+do
+    echo -ne "\n     ${i} "
+    wget "${wget_options[@]}" --output-document virus_output http://www.newalliancebank.com/ > /dev/null
+
+    if [ $? -ne 0 ]; then
+        success_log "AV" "HTML/Refresh.250C!tr ${i}"
     else
-        fail_log "AV" "HTML/Refresh.250C!tr" "Virus can be downloaded: Reply page is not replacement message from Fortinet"
+        if grep -i forti virus_output >/dev/null; then 
+            success_log "AV" "HTML/Refresh.250C!tr ${i}"
+        else
+            fail_log "AV" "HTML/Refresh.250C!tr ${i}" "Virus can be downloaded: Reply page is not replacement message from Fortinet"
+        fi
     fi
-fi
-echo "(2/2)."
+done
+echo -ne "\n(2/2).\n"
 
 #=============================
 # WebFilter
@@ -255,7 +274,8 @@ for site in ${sites[@]}
 do
     i=$(($i+1))
     
-    if wget "${wget_options[@]}" --output-document webfilter_output ${site} > /dev/null; then
+    wget "${wget_options[@]}" --output-document webfilter_output ${site} > /dev/null
+    if [ $? -ne 0 ]; then
         success_log "WebFilter" ${site}
     else
         if grep -i forti webfilter_output >/dev/null; then 
@@ -273,6 +293,7 @@ done
 # AppControl
 #=============================
 date
+rm appcontrol_output 2> /dev/null
 sites=(unblockvideos.com youtube.com)
 echo
 echo "Checking AppControl (${#sites[@]}):"
@@ -280,11 +301,15 @@ i=0
 for site in ${sites[@]}
 do
     i=$(($i+1))
-    wget "${wget_options[@]}" ${site} > /dev/null
+    wget "${wget_options[@]}" --output-document appcontrol_output ${site} > /dev/null
     if [ $? -ne 0 ]; then
         success_log "AppControl" ${site}
     else
-        fail_log "AppControl" ${site} "Site can be accessed"
+        if grep -i forti appcontrol_output >/dev/null; then 
+            success_log "AppControl" ${site}
+        else
+            fail_log "AppControl" ${site} "Site can be accessed"
+        fi
     fi
     echo "(${i}/${#sites[@]})."
 done
