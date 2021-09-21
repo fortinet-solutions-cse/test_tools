@@ -83,7 +83,7 @@ echo
 start_log
 echo
 echo "Checking internet connectivity (2):"
-wget "${wget_options[@]}" https://www.google.com > /dev/null
+wget "${wget_options[@]}" https://www.google.com >/dev/null 2>&1
 
 if [ $? -ne 0 ]; then
     fail_log "Checking internet connectivity" "Google" "Cannot get any traffic. Accessing Google.com failed"
@@ -93,8 +93,7 @@ else
 fi
 echo "(1/2)."
 
-wget "${wget_options[@]}" https://www.google.com --no-check-certificate> /dev/null
-
+wget "${wget_options[@]}" https://www.google.com --no-check-certificate >/dev/null 2>&1
 if [ $? -ne 0 ]; then
     fail_log "Checking internet connectivity" "Google (cert check disabled)" "Cannot get any traffic. Accessing Google.com failed"
 else
@@ -108,46 +107,94 @@ if [ $ssl_inspection_hint1 ] && [ $ssl_inspection_hint2 ]; then
 fi
 
 #=============================
-# EICAR (AV/IPS)
+# EICAR (AV/IPS) - HTTP
 #=============================
 wget_options+=(--no-check-certificate)
 echo 
 echo "Disabling certificate check in subsequent requests"
 
-rm eicar_signature 2>/dev/null
+rm eicar_signature >/dev/null 2>&1
 date
 echo
-echo "Detect EICAR (3):"
-wget "${wget_options[@]}" --output-document eicar_signature http://www.rexswain.com/eicar.com > /dev/null
+echo "Detect EICAR-http (3):"
+wget "${wget_options[@]}" --output-document eicar_signature http://www.rexswain.com/eicar.com >/dev/null 2>&1
 if [ $? -ne 0 ]; then
     success_log "Detect EICAR" "http/plain text"
 else
-    if grep "7CC)7}\$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!" eicar_signature >/dev/null; then 
-        fail_log "Detect EICAR" "http/plain text" "EICAR can be downloaded"
-    else
+    grep "7CC)7}\$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!" eicar_signature >/dev/null 2>&1 
+    if [ $? -ne 0 ]; then
         success_log "Detect EICAR" "http/plain text"
+    else
+        fail_log "Detect EICAR" "http/plain text" "EICAR can be downloaded"
     fi
 fi
 echo "(1/3)."
-wget "${wget_options[@]}" --output-document eicar_signature http://www.rexswain.com/eicar.zip > /dev/null
+wget "${wget_options[@]}" --output-document eicar_signature http://www.rexswain.com/eicar.zip >/dev/null 2>&1
 if [ $? -ne 0 ]; then
     success_log "Detect EICAR" "http/zip"
 else
-    if unzip eicar_signature 2&>/dev/null; then
-        fail_log "Detect EICAR" "http/zip" "EICAR can be downloaded: File is a zip"
-    else
+    unzip -l eicar_signature >/dev/null 2>&1
+    if [ $? -ne 0 ]; then
         success_log "Detect EICAR" "http/zip"
+    else
+        fail_log "Detect EICAR" "http/zip" "EICAR can be downloaded: File is a zip"
     fi
 fi
 echo "(2/3)."
-wget "${wget_options[@]}" --output-document eicar_signature http://www.rexswain.com/eicar2.zip > /dev/null
+wget "${wget_options[@]}" --output-document eicar_signature http://www.rexswain.com/eicar2.zip >/dev/null 2>&1
 if [ $? -ne 0 ]; then
     success_log "Detect EICAR" "http/double zip"
 else
-    if unzip eicar_signature 2&>/dev/null; then
-        fail_log "Detect EICAR" "http/double zip" "EICAR can be downloaded: File is a zip"
-    else
+    unzip -l eicar_signature >/dev/null 2>&1
+    if [ $? -ne 0 ]; then
         success_log "Detect EICAR" "http/double zip"
+    else
+        fail_log "Detect EICAR" "http/double zip" "EICAR can be downloaded: File is a zip"
+    fi
+fi
+echo "(3/3)."
+
+#=============================
+# EICAR (AV/IPS) - HTTPS
+#=============================
+
+rm eicar_signature >/dev/null 2>&1
+date
+echo
+echo "Detect EICAR-https (3):"
+wget "${wget_options[@]}" --output-document eicar_signature https://secure.eicar.org/eicar.com >/dev/null 2>&1
+if [ $? -ne 0 ]; then
+    success_log "Detect EICAR" "https/plain text"
+else
+    grep "7CC)7}\$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!" eicar_signature >/dev/null 2>&1
+    if [ $? -ne 0 ]; then
+        success_log "Detect EICAR" "https/plain text"
+    else
+        fail_log "Detect EICAR" "https/plain text" "EICAR can be downloaded"
+    fi
+fi
+echo "(1/3)."
+wget "${wget_options[@]}" --output-document eicar_signature https://secure.eicar.org/eicar_com.zip >/dev/null 2>&1
+if [ $? -ne 0 ]; then
+    success_log "Detect EICAR" "https/zip"
+else
+    unzip -l eicar_signature >/dev/null 2>&1
+    if [ $? -ne 0 ]; then
+        success_log "Detect EICAR" "https/zip"
+    else
+        fail_log "Detect EICAR" "https/zip" "EICAR can be downloaded: File is a zip"
+    fi
+fi
+echo "(2/3)."
+wget "${wget_options[@]}" --output-document eicar_signature https://secure.eicar.org/eicarcom2.zip >/dev/null 2>&1
+if [ $? -ne 0 ]; then
+    success_log "Detect EICAR" "https/double zip"
+else
+    unzip -l eicar_signature >/dev/null 2>&1
+    if [ $? -ne 0 ]; then
+        success_log "Detect EICAR" "https/double zip"
+    else
+        fail_log "Detect EICAR" "https/double zip" "EICAR can be downloaded: File is a zip"
     fi
 fi
 echo "(3/3)."
@@ -158,7 +205,7 @@ echo "(3/3)."
 date
 echo
 echo "Downloading MP3 files (2):"
-timeout 30 wget "${wget_options[@]}" http://www.gurbaniupdesh.org/multimedia/01-Audio%20Books/Baba%20Noadh%20Singh/000%20Introduction%20Bhai%20Sarabjit%20Singh%20Ji%20Gobindpuri.mp3  > /dev/null
+timeout 30 wget "${wget_options[@]}" http://www.gurbaniupdesh.org/multimedia/01-Audio%20Books/Baba%20Noadh%20Singh/000%20Introduction%20Bhai%20Sarabjit%20Singh%20Ji%20Gobindpuri.mp3 >/dev/null 2>&1
 if [ $? -ne 0 ]; then
     fail_log "Download MP3 files" "http://www.gurbaniupdesh.org/" "Cannot download mp3"
 else
@@ -166,7 +213,7 @@ else
 fi
 echo "(1/2)."
 
-timeout 30 wget "${wget_options[@]}" http://www.theradiodept.com/media/mp3/david.mp3 > /dev/null
+timeout 30 wget "${wget_options[@]}" http://www.theradiodept.com/media/mp3/david.mp3 >/dev/null 2>&1
 if [ $? -ne 0 ]; then
     fail_log "Download MP3 files" "http://www.theradiodept.com/" "Cannot download mp3"
 else
@@ -223,7 +270,7 @@ echo "(4/4)."
 date
 echo
 echo "Downloading Viruses (2):"
-rm virus_output 2>/dev/null
+rm virus_output >/dev/null 2>&1
 # Repeat 5 times to ensure virus is sent, detected by the AV engine and then blocked
 echo -ne "  Iteration: "
 for i in {1..5}
@@ -266,7 +313,7 @@ echo -ne "\n(2/2).\n"
 #=============================
 date
 sites=(www.magikmobile.com www.cstress.net www.ilovemynanny.com ww1.movie2kproxy.com www.microsofl.bid)
-rm webfilter_ouput 2>/dev/null
+rm webfilter_ouput >/dev/null 2>&1
 echo
 echo "Checking WebFilter (${#sites[@]}):"
 i=0
@@ -274,11 +321,12 @@ for site in ${sites[@]}
 do
     i=$(($i+1))
     
-    wget "${wget_options[@]}" --output-document webfilter_output ${site} > /dev/null
+    wget "${wget_options[@]}" --output-document webfilter_output ${site} >/dev/null 2>&1
     if [ $? -ne 0 ]; then
         success_log "WebFilter" ${site}
     else
-        if grep -i forti webfilter_output >/dev/null; then 
+        grep -i forti webfilter_output >/dev/null 2>&1 
+        if [ $? -eq 0 ]; then
             success_log "WebFilter" ${site}
         else
             fail_log "WebFilter" ${site} "Site can be accessed: Reply page is not replacement message from Fortinet"
@@ -293,7 +341,7 @@ done
 # AppControl
 #=============================
 date
-rm appcontrol_output 2> /dev/null
+rm appcontrol_output >/dev/null 2>&1
 sites=(unblockvideos.com youtube.com)
 echo
 echo "Checking AppControl (${#sites[@]}):"
@@ -301,11 +349,12 @@ i=0
 for site in ${sites[@]}
 do
     i=$(($i+1))
-    wget "${wget_options[@]}" --output-document appcontrol_output ${site} > /dev/null
+    wget "${wget_options[@]}" --output-document appcontrol_output ${site} >/dev/null 2>&1
     if [ $? -ne 0 ]; then
         success_log "AppControl" ${site}
     else
-        if grep -i forti appcontrol_output >/dev/null; then 
+        grep -i forti appcontrol_output  >/dev/null 2>&1 
+        if [ $? -eq 0 ]; then
             success_log "AppControl" ${site}
         else
             fail_log "AppControl" ${site} "Site can be accessed"
