@@ -256,7 +256,7 @@ fi
 echo "(2/4)."
 
 echo "  Spanish ID number:"
-curl ${curl_options} -X POST  -H "Content-Type:multipart/form-data; boundary=---------------------------52410911313245418552292478843" -F 'item_meta[6]=_14332564D_' http://dlptest.com/http-post
+curl ${curl_options} -X POST  -H "Content-Type:multipart/form-data; boundary=---------------------------52410911313245418552292478843" -F 'item_meta[6]=_4332564D_' http://dlptest.com/http-post
 if [ $? -ne 0 ]; then
     success_log "Check DLP" "Spanish ID number"
 else
