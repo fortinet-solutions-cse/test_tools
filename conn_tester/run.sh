@@ -200,26 +200,35 @@ fi
 echo "(3/3)."
 
 #=============================
-# Files (MP3)
+# Files
 #=============================
 date
 echo
-echo "Downloading MP3 files (2):"
+echo "Downloading MP3 files (3):"
 timeout 30 wget "${wget_options[@]}" http://www.gurbaniupdesh.org/multimedia/01-Audio%20Books/Baba%20Noadh%20Singh/000%20Introduction%20Bhai%20Sarabjit%20Singh%20Ji%20Gobindpuri.mp3 >/dev/null 2>&1
 if [ $? -ne 0 ]; then
-    fail_log "Download MP3 files" "http://www.gurbaniupdesh.org/" "Cannot download mp3"
+    success_log "Download files" "http://www.gurbaniupdesh.org/" 
 else
-    success_log "Download MP3 files" "http://www.gurbaniupdesh.org/"
+    fail_log "Download files" "http://www.gurbaniupdesh.org/" "MP3 can be downloaded"
 fi
 echo "(1/2)."
 
 timeout 30 wget "${wget_options[@]}" http://www.theradiodept.com/media/mp3/david.mp3 >/dev/null 2>&1
 if [ $? -ne 0 ]; then
-    fail_log "Download MP3 files" "http://www.theradiodept.com/" "Cannot download mp3"
+    success_log "Download files" "http://www.theradiodept.com/" 
 else
-    success_log "Download MP3 files" "http://www.theradiodept.com/"
+    fail_log "Download files" "http://www.theradiodept.com/" "MP3 can be downloaded"
 fi
-echo "(2/2)."
+echo "(2/3)."
+
+timeout 30 wget "${wget_options[@]}" https://faro.fortinet-emea.com:5000/static/file.base64 >/dev/null 2>&1
+if [ $? -ne 0 ]; then
+    success_log "Download files" "https://faro.fortinet-emea.com:5000/static/file.base64" 
+else
+    fail_log "Download files" "https://faro.fortinet-emea.com:5000/static/file.base64" "Base64 file can be downloaded"
+fi
+echo "(3/3)."
+
 
 #=============================
 # DLP
@@ -247,7 +256,7 @@ fi
 echo "(2/4)."
 
 echo "  Spanish ID number:"
-curl ${curl_options} -X POST  -H "Content-Type:multipart/form-data; boundary=---------------------------52410911313245418552292478843" -F 'item_meta[6]=14332564D' http://dlptest.com/http-post
+curl ${curl_options} -X POST  -H "Content-Type:multipart/form-data; boundary=---------------------------52410911313245418552292478843" -F 'item_meta[6]=_14332564D_' http://dlptest.com/http-post
 if [ $? -ne 0 ]; then
     success_log "Check DLP" "Spanish ID number"
 else
