@@ -41,6 +41,9 @@ function start_log() {
 
     echo -e "${YEL}General connectivity tests${NC}"
     echo "=========================="
+    echo "Please note this script assumes some security settings in your connection:"
+    echo "Video/Audio/Proxy should be blocked and AV/WF/FF/IPS/Deep Inspection should enabled"
+    echo ""
     if [ ${XML} ]; then
         echo "<testsuite>" > ${xml_file}
     fi
@@ -86,10 +89,10 @@ echo "Checking internet connectivity (2):"
 wget "${wget_options[@]}" https://www.google.com >/dev/null 2>&1
 
 if [ $? -ne 0 ]; then
-    fail_log "Checking internet connectivity" "Google" "Cannot get any traffic. Accessing Google.com failed"
+    echo "Checking internet connectivity: Google: Accessing Google.com failed. This error will not be included in report"
     ssl_inspection_hint1=true
 else
-    success_log "Checking internet connectivity" "Google"
+    echo "Checking internet connectivity: Google can be accessed"
 fi
 echo "(1/2)."
 
