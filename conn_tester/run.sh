@@ -8,6 +8,7 @@ xml_file="test_results.xml"
 user_agent="Mozilla/4.0 (compatible; MSIE 9.0; Windows NT 6.1)"
 wget_options=(-qO- -T 30 -t 1 -U "${user_agent}")
 curl_options="-s -o /dev/null"
+tmp="./test_tmp"
 
 trap finish_log EXIT SIGINT SIGQUIT SIGKILL SIGTERM
 
@@ -118,15 +119,14 @@ function run_security_checks() {
     echo 
     echo "Disabling certificate check in subsequent requests"
 
-    rm eicar_signature >/dev/null 2>&1
     date
     echo
     echo "Detect EICAR-http (3):"
-    wget "${wget_options[@]}" --output-document eicar_signature http://www.rexswain.com/eicar.com >/dev/null 2>&1
+    wget "${wget_options[@]}" --output-document ${tmp}/eicar_signature http://www.rexswain.com/eicar.com >/dev/null 2>&1
     if [ $? -ne 0 ]; then
         success_log "Detect EICAR" "http/plain text"
     else
-        grep "7CC)7}\$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!" eicar_signature >/dev/null 2>&1 
+        grep "7CC)7}\$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!" ${tmp}/eicar_signature >/dev/null 2>&1 
         if [ $? -ne 0 ]; then
             success_log "Detect EICAR" "http/plain text"
         else
@@ -134,11 +134,11 @@ function run_security_checks() {
         fi
     fi
     echo "(1/3)."
-    wget "${wget_options[@]}" --output-document eicar_signature http://www.rexswain.com/eicar.zip >/dev/null 2>&1
+    wget "${wget_options[@]}" --output-document ${tmp}/eicar_signature_z http://www.rexswain.com/eicar.zip >/dev/null 2>&1
     if [ $? -ne 0 ]; then
         success_log "Detect EICAR" "http/zip"
     else
-        unzip -l eicar_signature >/dev/null 2>&1
+        unzip -l ${tmp}/eicar_signature_z >/dev/null 2>&1
         if [ $? -ne 0 ]; then
             success_log "Detect EICAR" "http/zip"
         else
@@ -146,11 +146,11 @@ function run_security_checks() {
         fi
     fi
     echo "(2/3)."
-    wget "${wget_options[@]}" --output-document eicar_signature http://www.rexswain.com/eicar2.zip >/dev/null 2>&1
+    wget "${wget_options[@]}" --output-document ${tmp}/eicar_signature_z_z http://www.rexswain.com/eicar2.zip >/dev/null 2>&1
     if [ $? -ne 0 ]; then
         success_log "Detect EICAR" "http/double zip"
     else
-        unzip -l eicar_signature >/dev/null 2>&1
+        unzip -l ${tmp}/eicar_signature_z_z >/dev/null 2>&1
         if [ $? -ne 0 ]; then
             success_log "Detect EICAR" "http/double zip"
         else
@@ -163,15 +163,14 @@ function run_security_checks() {
     # EICAR (AV/IPS) - HTTPS
     #=============================
 
-    rm eicar_signature >/dev/null 2>&1
     date
     echo
     echo "Detect EICAR-https (3):"
-    wget "${wget_options[@]}" --output-document eicar_signature https://secure.eicar.org/eicar.com >/dev/null 2>&1
+    wget "${wget_options[@]}" --output-document ${tmp}/eicar_signature_s https://secure.eicar.org/eicar.com >/dev/null 2>&1
     if [ $? -ne 0 ]; then
         success_log "Detect EICAR" "https/plain text"
     else
-        grep "7CC)7}\$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!" eicar_signature >/dev/null 2>&1
+        grep "7CC)7}\$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!" ${tmp}/eicar_signature_s >/dev/null 2>&1
         if [ $? -ne 0 ]; then
             success_log "Detect EICAR" "https/plain text"
         else
@@ -179,11 +178,11 @@ function run_security_checks() {
         fi
     fi
     echo "(1/3)."
-    wget "${wget_options[@]}" --output-document eicar_signature https://secure.eicar.org/eicar_com.zip >/dev/null 2>&1
+    wget "${wget_options[@]}" --output-document ${tmp}/eicar_signature_s_z https://secure.eicar.org/eicar_com.zip >/dev/null 2>&1
     if [ $? -ne 0 ]; then
         success_log "Detect EICAR" "https/zip"
     else
-        unzip -l eicar_signature >/dev/null 2>&1
+        unzip -l ${tmp}/eicar_signature_s_z >/dev/null 2>&1
         if [ $? -ne 0 ]; then
             success_log "Detect EICAR" "https/zip"
         else
@@ -191,11 +190,11 @@ function run_security_checks() {
         fi
     fi
     echo "(2/3)."
-    wget "${wget_options[@]}" --output-document eicar_signature https://secure.eicar.org/eicarcom2.zip >/dev/null 2>&1
+    wget "${wget_options[@]}" --output-document ${tmp}/eicar_signature_s_z_z https://secure.eicar.org/eicarcom2.zip >/dev/null 2>&1
     if [ $? -ne 0 ]; then
         success_log "Detect EICAR" "https/double zip"
     else
-        unzip -l eicar_signature >/dev/null 2>&1
+        unzip -l ${tmp}/eicar_signature_s_z_z >/dev/null 2>&1
         if [ $? -ne 0 ]; then
             success_log "Detect EICAR" "https/double zip"
         else
@@ -284,18 +283,17 @@ function run_security_checks() {
     date
     echo
     echo "Downloading Viruses (2):"
-    rm virus_output >/dev/null 2>&1
     # Repeat 5 times to ensure virus is sent, detected by the AV engine and then blocked
     echo -ne "  Iteration: "
     for i in {1..5}
     do
         echo -ne "\n     ${i} "
-        wget "${wget_options[@]}" --output-document virus_output http://www.esthetique-realm.net/ > /dev/null
+        wget "${wget_options[@]}" --output-document ${tmp}/virus_output_js${i} http://www.esthetique-realm.net/ > /dev/null
 
         if [ $? -ne 0 ]; then
             success_log "AV" "JS/Iframe.BYO!tr ${i}"
         else
-            if grep -i forti virus_output >/dev/null; then 
+            if grep -i forti ${tmp}/virus_output_js${i} >/dev/null; then 
                 success_log "AV" "JS/Iframe.BYO!tr ${i}"
             else
                 fail_log "AV" "JS/Iframe.BYO!tr ${i}" "Virus can be downloaded: Reply page is not replacement message from Fortinet"
@@ -308,12 +306,12 @@ function run_security_checks() {
     for i in {1..5}
     do
         echo -ne "\n     ${i} "
-        wget "${wget_options[@]}" --output-document virus_output http://www.newalliancebank.com/ > /dev/null
+        wget "${wget_options[@]}" --output-document ${tmp}/virus_output_ht${i} http://www.newalliancebank.com/ > /dev/null
 
         if [ $? -ne 0 ]; then
             success_log "AV" "HTML/Refresh.250C!tr ${i}"
         else
-            if grep -i forti virus_output >/dev/null; then 
+            if grep -i forti ${tmp}/virus_output_ht${i} >/dev/null; then 
                 success_log "AV" "HTML/Refresh.250C!tr ${i}"
             else
                 fail_log "AV" "HTML/Refresh.250C!tr ${i}" "Virus can be downloaded: Reply page is not replacement message from Fortinet"
@@ -327,7 +325,6 @@ function run_security_checks() {
     #=============================
     date
     sites=(www.magikmobile.com www.cstress.net www.ilovemynanny.com ww1.movie2kproxy.com www.microsofl.bid)
-    rm webfilter_ouput >/dev/null 2>&1
     echo
     echo "Checking WebFilter (${#sites[@]}):"
     i=0
@@ -335,11 +332,11 @@ function run_security_checks() {
     do
         i=$(($i+1))
         
-        wget "${wget_options[@]}" --output-document webfilter_output ${site} >/dev/null 2>&1
+        wget "${wget_options[@]}" --output-document ${tmp}/webfilter_output${site} ${site} >/dev/null 2>&1
         if [ $? -ne 0 ]; then
             success_log "WebFilter" ${site}
         else
-            grep -i forti webfilter_output >/dev/null 2>&1 
+            grep -i forti ${tmp}/webfilter_output${site} >/dev/null 2>&1 
             if [ $? -eq 0 ]; then
                 success_log "WebFilter" ${site}
             else
@@ -355,7 +352,6 @@ function run_security_checks() {
     # AppControl
     #=============================
     date
-    rm appcontrol_output >/dev/null 2>&1
     sites=(unblockvideos.com youtube.com)
     echo
     echo "Checking AppControl (${#sites[@]}):"
@@ -363,11 +359,11 @@ function run_security_checks() {
     for site in ${sites[@]}
     do
         i=$(($i+1))
-        wget "${wget_options[@]}" --output-document appcontrol_output ${site} >/dev/null 2>&1
+        wget "${wget_options[@]}" --output-document ${tmp}/appcontrol_output${site} ${site} >/dev/null 2>&1
         if [ $? -ne 0 ]; then
             success_log "AppControl" ${site}
         else
-            grep -i forti appcontrol_output  >/dev/null 2>&1 
+            grep -i forti ${tmp}/appcontrol_output${site}  >/dev/null 2>&1 
             if [ $? -eq 0 ]; then
                 success_log "AppControl" ${site}
             else
@@ -383,6 +379,9 @@ function run_security_checks() {
 #=============================
 # Start
 #=============================
+rm -rf ${tmp} >/dev/null 2>&1
+mkdir -p ${tmp} >/dev/null 2>&1
+
 date
 echo
 start_log
